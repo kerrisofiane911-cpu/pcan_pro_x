@@ -1,0 +1,36 @@
+name: build-pcan-pro
+
+on: push: pull_request: workflow_dispatch:
+
+jobs: build: runs-on: ubuntu-latest
+
+steps:
+  - name: Checkout repository
+    uses: actions/checkout@v4
+
+  - name: Install ARM GCC toolchain
+    run: |
+      sudo apt-get update
+      sudo apt-get install -y \
+        gcc-arm-none-eabi \
+        binutils-arm-none-eabi \
+        make
+
+  - name: Clean project
+    run: make clean
+
+  - name: Build PCAN-PRO firmware (STM32F407)
+    run: make pro
+
+  - name: Generate BIN file
+    run: |
+      arm-none-eabi-objcopy -O binary \
+        build/pcan_pro.elf \
+        build/pcan_pro.bin
+
+  - name: Upload firmware artifact (.bin)
+    uses: actions/upload-artifact@v4
+    with:
+      name: pcan_pro_stm32f407_bin
+      path: build/pcan_pro.bin
+
